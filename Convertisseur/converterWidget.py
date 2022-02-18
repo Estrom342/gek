@@ -101,7 +101,6 @@ class ConverterWidget(QMainWindow):
         hexValue = self.hexWidget.toPlainText().split(" ")
         if len(hexValue) == 0:
             return
-        print(hexValue)
         decimalValue = [str(hexadecimalToDecimal(it)) for it in hexValue if it != ""]
         binaryValue = [str(hexadecimalToBinary(it)) for it in hexValue if it != ""]
         self.decimalWidget.setText(" ".join(decimalValue))
