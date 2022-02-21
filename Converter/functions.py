@@ -43,6 +43,13 @@ def hexadecimalToBinary(value: str):
     return "".join(value)
 
 
+def resizeElement(ls: list, minSize: int):
+    for index, elt in enumerate(ls):
+        while len(elt) % minSize != 0:
+            elt = "0"+elt
+        ls[index] = elt
+    return ls
+
 hexadecimalItem = "0123456789abcdef"
 hexadecimalDic = {}
 for i in range(16):
