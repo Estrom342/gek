@@ -5,7 +5,8 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QTextEdit, QGroupBox, QVBoxLayout, QGridLayout, QRadioButton, \
     QHBoxLayout, QPushButton, QApplication
 
-from functions import binaryToDecimal, binaryToHex, hexadecimalToDecimal, hexadecimalToBinary, resizeElement
+from functions import binaryToDecimal, binaryToHex, hexadecimalToDecimal, hexadecimalToBinary, resizeElement, \
+    asciiToBinary, binaryToAscii
 
 
 class ConverterWidget(QMainWindow):
@@ -36,6 +37,8 @@ class ConverterWidget(QMainWindow):
         self.decimalWidget, decimalContainer = ConverterWidget.createChild("Decimal value")
         self.binaryWidget, binaryContainer = ConverterWidget.createChild("Binary value")
         self.hexWidget, hexContainer = ConverterWidget.createChild("Hexadecimal value")
+        self.asciiWidget, asciiContainer = ConverterWidget.createChild("Ascii value")
+
         layout = QGridLayout()
 
         # adding children's Widget in the layout
@@ -43,7 +46,8 @@ class ConverterWidget(QMainWindow):
         layout.addWidget(self.inputChooserWidget, 1, 0, 1, 2)
         layout.addWidget(decimalContainer, 2, 0, 1, 1)
         layout.addWidget(hexContainer, 2, 1, 1, 1)
-        layout.addWidget(binaryContainer, 3, 0, 1, 2)
+        layout.addWidget(binaryContainer, 3, 0, 1, 1)
+        layout.addWidget(asciiContainer, 3, 1, 1, 1)
         layout.addWidget(self.btnConvert, 4, 0, 1, 2, Qt.AlignCenter)
         self.centralWidget.setLayout(layout)
         self.setCentralWidget(self.centralWidget)
@@ -59,6 +63,7 @@ class ConverterWidget(QMainWindow):
         self.decimalWidget.installEventFilter(self)
         self.hexWidget.installEventFilter(self)
         self.binaryWidget.installEventFilter(self)
+        self.asciiWidget.installEventFilter(self)
 
     def eventFilter(self, a0: QObject, a1: QEvent) -> bool:
 
@@ -72,6 +77,8 @@ class ConverterWidget(QMainWindow):
             elif a0 == self.hexWidget:
                 self.onHexadecimalTextChanged()
                 return True
+            elif a0 == self.asciiWidget:
+                self.onAsciiTextChanged()
             else:
                 pass
         return QMainWindow.eventFilter(self, a0, a1)
@@ -90,33 +97,35 @@ class ConverterWidget(QMainWindow):
 
         self.binaryWidget.setText(" ".join(binaryValue))
         self.hexWidget.setText(" ".join(hexValue))
+        self.asciiWidget.setText(binaryToAscii(" ".join(binaryValue)))
 
     def onBinaryTextChanged(self):
-        binaryText = self.binaryWidget.toPlainText().split(" ")
+        binaryText = self.binaryWidget.toPlainText()
         if len(binaryText) == 0:
             return
-        decimalValue = [str(binaryToDecimal(it)) for it in binaryText if it != ""]
-        # decimalValue = [str(int(it, 2)) for it in binaryText if it != ""]
-        hexValue = [str(binaryToHex(it)) for it in binaryText]
-        hexValue = resizeElement(hexValue, 2)
-        self.decimalWidget.setText(" ".join(decimalValue))
-        self.hexWidget.setText(" ".join(hexValue))
+        self.decimalWidget.setText(binaryToDecimal(binaryText))
+        self.hexWidget.setText(binaryToHex(binaryText))
+        self.asciiWidget.setText(binaryToAscii(binaryText))
 
     def onHexadecimalTextChanged(self):
         hexValue = self.hexWidget.toPlainText().split(" ")
         if len(hexValue) == 0:
             return
-        decimalValue = [str(hexadecimalToDecimal(it)) for it in hexValue if it != ""]
-        # decimalValue = [str(int(it, 16)) for it in hexValue if it != ""]
         binaryValue = [str(hexadecimalToBinary(it)) for it in hexValue if it != ""]
         binaryValue = resizeElement(binaryValue, 8)
-        self.decimalWidget.setText(" ".join(decimalValue))
+        self.decimalWidget.setText(hexadecimalToDecimal(self.hexWidget.toPlainText()))
         self.binaryWidget.setText(" ".join(binaryValue))
+        self.asciiWidget.setText(binaryToAscii(" ".join(binaryValue)))
 
     def onChooseInputType(self):
         self.decimalWidget.setReadOnly(not (self.btnDecimal.isChecked() or self.btnAuto.isChecked()))
         self.binaryWidget.setReadOnly(not (self.btnBin.isChecked() or self.btnAuto.isChecked()))
         self.hexWidget.setReadOnly(not (self.btnHex.isChecked() or self.btnAuto.isChecked()))
+
+    def onAsciiTextChanged(self):
+        self.binaryWidget.setPlainText(asciiToBinary(self.asciiWidget.toPlainText()))
+        self.hexWidget.setText(binaryToHex(self.binaryWidget.toPlainText()))
+        self.decimalWidget.setText(binaryToDecimal(self.binaryWidget.toPlainText()))
 
     def onConversion(self):
         if self.btnAuto.isChecked():
